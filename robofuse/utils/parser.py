@@ -211,7 +211,7 @@ class MetadataParser:
                 folder_structure.append(metadata["title"])
 
 
-        if download_id:
+        if torrent_id:
             folder_structure[-1] += f" [{torrent_id}]"
         
         return folder_structure
