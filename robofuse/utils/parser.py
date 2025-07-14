@@ -212,7 +212,7 @@ class MetadataParser:
 
 
         if download_id:
-            folder_structure[-1] += f" [{download_id}]"
+            folder_structure[-1] += f" [{torrent_id}]"
         
         return folder_structure
     
