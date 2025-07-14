@@ -1,5 +1,5 @@
 {
-    "token": "K3PB7QR7FKEAYGUCBTGV7TSQU4RJXR75HKAIUOGTBH3N5XEL6I5Q",
+    "token": "TOKEN",
     "output_dir": "./Library",
     "cache_dir": "./cache",
     "concurrent_requests": 8,
