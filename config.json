@@ -1,9 +1,9 @@
 {
-    "token": "YOUR_RD_API_TOKEN",
+    "token": "K3PB7QR7FKEAYGUCBTGV7TSQU4RJXR75HKAIUOGTBH3N5XEL6I5Q",
     "output_dir": "./Library",
     "cache_dir": "./cache",
-    "concurrent_requests": 32,
-    "general_rate_limit": 60,
+    "concurrent_requests": 8,
+    "general_rate_limit": 30,
     "torrents_rate_limit": 25,
     "watch_mode_interval": 60,
     "repair_torrents": true,
