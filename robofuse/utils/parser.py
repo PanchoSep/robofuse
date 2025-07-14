@@ -173,7 +173,7 @@ class MetadataParser:
         # Anime with no episode info
         return media_type, f"{title}{format_suffix}"
     
-    def generate_folder_structure(self, metadata: Dict[str, Any]) -> List[str]:
+    def generate_folder_structure(self, metadata: Dict[str, Any], torrent_id: Optional[str] = None) -> List[str]:
         """Generate a folder structure based on metadata.
         
         Args:
@@ -209,6 +209,10 @@ class MetadataParser:
             folder_structure.append("Others")
             if metadata.get("title"):
                 folder_structure.append(metadata["title"])
+
+
+        if download_id:
+            folder_structure[-1] += f" [{download_id}]"
         
         return folder_structure
     
