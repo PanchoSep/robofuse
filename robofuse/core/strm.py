@@ -42,7 +42,8 @@ class StrmFile:
         filename: str, 
         torrent_name: str, 
         dry_run: bool = False,
-        download_id: Optional[str] = None
+        download_id: Optional[str] = None,
+        torrent_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Create or update a .strm file.
@@ -63,7 +64,7 @@ class StrmFile:
             logger.verbose(f"Metadata for {filename}: {metadata}")
             
             # Generate folder structure based on metadata
-            folder_parts = self.metadata_parser.generate_folder_structure(metadata)
+            folder_parts = self.metadata_parser.generate_folder_structure(metadata, torrent_id)
             # Create the full path
             folder_path = self.output_dir
             for part in folder_parts:
