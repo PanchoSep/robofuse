@@ -319,7 +319,8 @@ class RoboFuseProcessor:
                     filename=candidate["filename"],
                     torrent_name=candidate["torrent_name"],
                     dry_run=self.dry_run,
-                    download_id=candidate.get("download_id")
+                    download_id=candidate.get("download_id"),
+                    torrent_id=candidate.get("torrent_id")
                 )
                 
                 if result["status"] == "error":
