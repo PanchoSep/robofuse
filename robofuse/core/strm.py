@@ -71,7 +71,7 @@ class StrmFile:
                 folder_path = folder_path / self._sanitize_filename(part)
             
             # Generate filename based on metadata and download ID
-            base_filename = self.metadata_parser.generate_filename(metadata, download_id)
+            base_filename = self.metadata_parser.generate_filename(metadata)
             safe_filename = self._sanitize_filename(base_filename)
         else:
             # Fallback to using torrent name as the folder
