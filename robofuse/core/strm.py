@@ -15,6 +15,8 @@ class StrmFile:
         self._ensure_output_dir()
         self.use_ptt_parser = use_ptt_parser
         self.metadata_parser = MetadataParser(enabled=use_ptt_parser)
+        self.paths_cache_file = self.output_dir / "processed_paths.json"
+        self.paths_cache = self._load_paths_cache()
     
     def _ensure_output_dir(self):
         """Ensure the output directory exists."""
@@ -88,6 +90,26 @@ class StrmFile:
         
         # Full path to the .strm file
         strm_path = folder_path / strm_filename
+        # Guardar el folder_path en processed_paths.json
+        if torrent_id:
+            relative_folder = os.path.relpath(folder_path, self.output_dir)
+    
+            # Si ya está registrado y la carpeta existe, se omite
+            if torrent_id in self.paths_cache:
+                cached_path = self.output_dir / self.paths_cache[torrent_id]
+                if cached_path.exists():
+                    logger.info(f"⏭️ torrent_id {torrent_id} ya registrado: {cached_path}, se omite")
+                    return {
+                        "status": "skipped",
+                        "path": str(cached_path / strm_filename),
+                        "reason": "torrent already processed",
+                        "is_update": False
+                    }
+    
+            # Registrar (o actualizar) el path
+            self.paths_cache[torrent_id] = relative_folder
+            self._save_paths_cache()
+            logger.verbose(f"💾 Guardado en processed_paths.json: {torrent_id} → {relative_folder}")
         
         # Check if this is an update or new file
         is_update = strm_path.exists()
@@ -230,3 +252,19 @@ class StrmFile:
         
         logger.info(f"Found {len(strm_files)} existing STRM files")
         return strm_files 
+
+    def _load_paths_cache(self) -> Dict[str, str]:
+        if self.paths_cache_file.exists():
+            try:
+                with open(self.paths_cache_file, 'r') as f:
+                    return json.load(f)
+            except Exception as e:
+                logger.warning(f"⚠️ Error cargando processed_paths.json: {e}")
+        return {}
+
+    def _save_paths_cache(self):
+        try:
+            with open(self.paths_cache_file, 'w') as f:
+                json.dump(self.paths_cache, f, indent=2)
+        except Exception as e:
+            logger.warning(f"⚠️ Error guardando processed_paths.json: {e}")
