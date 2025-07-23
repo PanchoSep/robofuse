@@ -184,7 +184,6 @@ class MetadataParser:
         """
         folder_structure = []
         media_type = metadata.get("type", "unknown").lower()
-        resolution = metadata.get("resolution") or "unknown"
         
         if media_type == "unknown":
             folder_structure.append("Others")
@@ -196,7 +195,7 @@ class MetadataParser:
                 folder_structure.append(f"Season {season_num:02d}")
         elif media_type == "movie":
             folder_structure.append("Movies")
-            folder_structure.append(resolution)
+            folder_structure.append(f"({metadata.get("resolution", "unknown").lower()})")
             movie_folder = metadata["title"]
             if metadata.get("year"):
                 movie_folder += f" ({metadata['year']})"
