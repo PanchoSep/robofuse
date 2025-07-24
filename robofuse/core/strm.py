@@ -17,7 +17,7 @@ class StrmFile:
         self.use_ptt_parser = use_ptt_parser
         self.metadata_parser = MetadataParser(enabled=use_ptt_parser)
         self.paths_cache_file = self.output_dir / "processed_paths.json"
-        self.paths_cache = self._load_paths_cache()
+        
     
     def _ensure_output_dir(self):
         """Ensure the output directory exists."""
@@ -94,7 +94,7 @@ class StrmFile:
         # Guardar el folder_path en processed_paths.json
         if torrent_id:
             relative_folder = os.path.relpath(folder_path, self.output_dir)
-    
+            self.paths_cache = self._load_paths_cache()
             # Si ya está registrado y la carpeta existe, se omite
             if torrent_id in self.paths_cache:
                 cached_path = self.output_dir / self.paths_cache[torrent_id]
