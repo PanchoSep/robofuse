@@ -1,7 +1,14 @@
 FROM python:3.11-slim
 
+ARG PUID=1000
+ARG PGID=1000
+
 LABEL maintainer="robofuse Team"
 LABEL description="robofuse - A service that interacts with Real-Debrid API to generate .strm files"
+
+# Create non-root user with custom UID/GID
+RUN addgroup --gid $PGID appgroup && \
+    adduser --disabled-password --gecos "" --uid $PUID --gid $PGID appuser
 
 # Set working directory
 WORKDIR /app
@@ -27,6 +34,13 @@ RUN pip install -e .
 
 # Create directories
 RUN mkdir -p /app/Library /app/cache
+
+# Cambia permisos y usa el nuevo usuario
+RUN chown -R appuser:appgroup /app
+USER appuser
+
+# Use non-root user
+USER appuser
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
