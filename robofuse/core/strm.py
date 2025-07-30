@@ -99,14 +99,14 @@ class StrmFile:
             if torrent_id in self.paths_cache:
                 cached_path = self.output_dir / self.paths_cache[torrent_id]
                 if cached_path.exists():
-                    logger.info(f"⏭️ torrent_id {torrent_id} ya registrado: {cached_path}, se omite")
-                    return {
-                        "status": "skipped",
-                        "path": str(cached_path / strm_filename),
-                        "reason": "torrent already processed",
-                        "is_update": False
-                    }
-    
+                    # logger.info(f"⏭️ torrent_id {torrent_id} ya registrado: {cached_path}, se omite")
+                    # return {
+                    #     "status": "skipped",
+                    #     "path": str(cached_path / strm_filename),
+                    #     "reason": "torrent already processed",
+                    #     "is_update": False
+                    # }
+                    strm_path = cached_path / strm_filename
             # Registrar (o actualizar) el path
             self.paths_cache[torrent_id] = relative_folder
             self._save_paths_cache()
