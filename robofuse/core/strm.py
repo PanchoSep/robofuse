@@ -107,6 +107,8 @@ class StrmFile:
                     #     "is_update": False
                     # }
                     strm_path = cached_path / strm_filename
+                    folder_path = cached_path
+                    relative_folder = os.path.relpath(folder_path, self.output_dir)
             # Registrar (o actualizar) el path
             self.paths_cache[torrent_id] = relative_folder
             self._save_paths_cache()
