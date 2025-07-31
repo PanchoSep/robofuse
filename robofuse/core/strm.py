@@ -77,22 +77,28 @@ class StrmFile:
             self.paths_cache.setdefault(torrent_id, [])
             existing_folders = self.paths_cache[torrent_id]
     
-            # Verificar si ya existe una carpeta para este archivo
+            matched_existing = None
             for existing in existing_folders:
-                if safe_filename in existing:
-                    folder_path = self.output_dir / existing
-                    relative_folder = existing
-                    break
+                existing_path = self.output_dir / existing
+                if existing_path.exists():
+                    potential_path = existing_path / strm_filename
+                    if potential_path.exists():
+                        matched_existing = existing
+                        break
+    
+            if matched_existing:
+                folder_path = self.output_dir / matched_existing
+                relative_folder = matched_existing
             else:
-                # Carpeta base ya usada por otro archivo → usar subcarpeta por filename
+                # Si ya existe la carpeta base en processed_paths, evitar duplicar y anidar infinitamente
                 if relative_folder in existing_folders:
                     folder_path = folder_path / safe_filename
                     relative_folder = os.path.relpath(folder_path, self.output_dir)
     
-                # Guardar la nueva ruta
-                self.paths_cache[torrent_id].append(relative_folder)
-                self._save_paths_cache()
-                logger.verbose(f"💾 Agregado a processed_paths.json: {torrent_id} → {relative_folder}")
+                if relative_folder not in self.paths_cache[torrent_id]:
+                    self.paths_cache[torrent_id].append(relative_folder)
+                    self._save_paths_cache()
+                    logger.verbose(f"💾 Agregado a processed_paths.json: {torrent_id} → {relative_folder}")
     
         strm_path = folder_path / strm_filename
         is_update = strm_path.exists()
@@ -147,6 +153,7 @@ class StrmFile:
                 "path": str(strm_path),
                 "error": str(e)
             }
+
     
     def delete_strm(self, strm_path: str) -> Dict[str, Any]:
         """Delete a .strm file."""
