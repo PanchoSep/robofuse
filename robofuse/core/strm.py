@@ -40,84 +40,63 @@ class StrmFile:
         return sanitized
     
     def create_or_update_strm(
-        self, 
-        download_url: str, 
-        filename: str, 
-        torrent_name: str, 
+        self,
+        download_url: str,
+        filename: str,
+        torrent_name: str,
         dry_run: bool = False,
         download_id: Optional[str] = None,
         torrent_id: Optional[str] = None
     ) -> Dict[str, Any]:
-        """
-        Create or update a .strm file.
-        
-        Args:
-            download_url: The URL to include in the .strm file
-            filename: The filename for the .strm file (without extension)
-            torrent_name: The name of the torrent (used for the folder)
-            dry_run: If True, don't actually create/update the file
-            download_id: Optional download ID to append to the filename
-            
-        Returns:
-            Dictionary with status and details
-        """
         if self.use_ptt_parser:
-            # Parse filename to extract metadata
             metadata = self.metadata_parser.parse(filename)
             logger.verbose(f"Metadata for {filename}: {metadata}")
-            
-            # Generate folder structure based on metadata
+    
             folder_parts = self.metadata_parser.generate_folder_structure(metadata, torrent_id)
-            # Create the full path
-            folder_path = self.output_dir
+            base_folder_path = self.output_dir
             for part in folder_parts:
-                folder_path = folder_path / self._sanitize_filename(part)
-            
-            # Generate filename based on metadata and download ID
+                base_folder_path = base_folder_path / self._sanitize_filename(part)
+    
             base_filename = self.metadata_parser.generate_filename(metadata)
             safe_filename = self._sanitize_filename(base_filename)
         else:
-            # Fallback to using torrent name as the folder
-            folder_path = self.output_dir / self._sanitize_filename(torrent_name)
-            
-            # Fallback to original filename without adding download_id
+            base_folder_path = self.output_dir / self._sanitize_filename(torrent_name)
             safe_filename = self._sanitize_filename(filename)
-        
-        # Add .strm extension if missing
+    
         if not safe_filename.lower().endswith('.strm'):
             strm_filename = f"{safe_filename}.strm"
         else:
             strm_filename = safe_filename
-        
-        # Full path to the .strm file
-        strm_path = folder_path / strm_filename
-        # Guardar el folder_path en processed_paths.json
+    
+        self.paths_cache = self._load_paths_cache()
+    
+        folder_path = base_folder_path
+        relative_folder = os.path.relpath(folder_path, self.output_dir)
+    
         if torrent_id:
-            relative_folder = os.path.relpath(folder_path, self.output_dir)
-            self.paths_cache = self._load_paths_cache()
-            # Si ya está registrado y la carpeta existe, se omite
-            if torrent_id in self.paths_cache:
-                cached_path = self.output_dir / self.paths_cache[torrent_id]
-                if cached_path.exists():
-                    # logger.info(f"⏭️ torrent_id {torrent_id} ya registrado: {cached_path}, se omite")
-                    # return {
-                    #     "status": "skipped",
-                    #     "path": str(cached_path / strm_filename),
-                    #     "reason": "torrent already processed",
-                    #     "is_update": False
-                    # }
-                    strm_path = cached_path / strm_filename
-                    folder_path = cached_path
+            self.paths_cache.setdefault(torrent_id, [])
+            existing_folders = self.paths_cache[torrent_id]
+    
+            # Verificar si ya existe una carpeta para este archivo
+            for existing in existing_folders:
+                if safe_filename in existing:
+                    folder_path = self.output_dir / existing
+                    relative_folder = existing
+                    break
+            else:
+                # Carpeta base ya usada por otro archivo → usar subcarpeta por filename
+                if relative_folder in existing_folders:
+                    folder_path = folder_path / safe_filename
                     relative_folder = os.path.relpath(folder_path, self.output_dir)
-            # Registrar (o actualizar) el path
-            self.paths_cache[torrent_id] = relative_folder
-            self._save_paths_cache()
-            logger.verbose(f"💾 Guardado en processed_paths.json: {torrent_id} → {relative_folder}")
-        
-        # Check if this is an update or new file
+    
+                # Guardar la nueva ruta
+                self.paths_cache[torrent_id].append(relative_folder)
+                self._save_paths_cache()
+                logger.verbose(f"💾 Agregado a processed_paths.json: {torrent_id} → {relative_folder}")
+    
+        strm_path = folder_path / strm_filename
         is_update = strm_path.exists()
-        
-        # Get current content if file exists
+    
         current_url = None
         if is_update:
             try:
@@ -125,8 +104,7 @@ class StrmFile:
                     current_url = f.read().strip()
             except Exception as e:
                 logger.warning(f"Failed to read existing STRM file: {str(e)}")
-        
-        # Determine action to take
+    
         if is_update and current_url == download_url:
             logger.verbose(f"STRM file already exists with current URL: {strm_path}")
             return {
@@ -135,7 +113,7 @@ class StrmFile:
                 "reason": "file exists with same URL",
                 "is_update": False
             }
-        
+    
         if dry_run:
             action = "Would update" if is_update else "Would create"
             logger.info(f"{action} STRM file: {strm_path}")
@@ -145,19 +123,17 @@ class StrmFile:
                 "action": "update" if is_update else "create",
                 "is_update": is_update
             }
-        
-        # Create directory if it doesn't exist
+    
         if not folder_path.exists():
             folder_path.mkdir(parents=True, exist_ok=True)
-        
-        # Write the .strm file
+    
         try:
             with open(strm_path, 'w') as f:
                 f.write(download_url)
-            
+    
             action = "Updated" if is_update else "Created"
             logger.success(f"{action} STRM file: {strm_path}")
-            
+    
             return {
                 "status": "success",
                 "path": str(strm_path),
