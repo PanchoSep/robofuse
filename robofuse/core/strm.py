@@ -110,8 +110,11 @@ class StrmFile:
                     current_url = f.read().strip()
             except Exception as e:
                 logger.warning(f"Failed to read existing STRM file: {str(e)}")
+
+        proxy_base_url = "http://128.140.93.28:5000/stream?link="
+        proxied_url = f"{proxy_base_url}{download_url}"
     
-        if is_update and current_url == download_url:
+        if is_update and current_url == proxied_url:
             logger.verbose(f"STRM file already exists with current URL: {strm_path}")
             return {
                 "status": "skipped",
@@ -135,7 +138,7 @@ class StrmFile:
     
         try:
             with open(strm_path, 'w') as f:
-                f.write(download_url)
+                f.write(proxied_url)
     
             action = "Updated" if is_update else "Created"
             logger.success(f"{action} STRM file: {strm_path}")
