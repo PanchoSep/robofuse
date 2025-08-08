@@ -111,7 +111,7 @@ class StrmFile:
             except Exception as e:
                 logger.warning(f"Failed to read existing STRM file: {str(e)}")
 
-        proxy_base_url = "http://128.140.93.28:5000/stream?link="
+        proxy_base_url = "http://128.140.93.28:5000/proxy/stream?api_password=dedsec&d="
         proxied_url = f"{proxy_base_url}{download_url}"
     
         if is_update and current_url == proxied_url:
